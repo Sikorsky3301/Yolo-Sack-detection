@@ -1,4 +1,4 @@
-# Sack Counting with YOLO (Line‑Crossing + Confidence Mode)
+# Sack Counting with YOLO11s (Line‑Crossing + Confidence Mode)
 
 A simple, practical sack counter built on **Ultralytics YOLO11s**.  
 Supports **interactive line‑crossing counting** (best for conveyor/entry‑exit counting) and **confidence mode** for quick checks.
