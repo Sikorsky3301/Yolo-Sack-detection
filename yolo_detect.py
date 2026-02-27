@@ -246,6 +246,7 @@ max_track_lost = 10
 conf_tracks = {}
 conf_next_track_id = 0
 conf_total_count = 0
+min_conf_track_age = 3
 
 # Begin inference loop
 while True:
@@ -394,12 +395,11 @@ while True:
 
         object_count = len(detections_info)
     else:
-        # Confidence mode: count detections above threshold (no tracking)
+        # Confidence mode: track detections and count each physical sack once
         object_count = len(detections_info)
-        # Track and count unique objects (so total grows realistically)
         new_conf_tracks = {}
         used_conf_track_ids = set()
-        conf_distance_threshold = 50  # pixels
+        conf_distance_threshold = 60  # pixels
 
         for det in detections_info:
             cx, cy = det['center']
@@ -416,14 +416,21 @@ while True:
                 track = conf_tracks[best_track_id]
                 track['center'] = (cx, cy)
                 track['lost'] = 0
+                track['age'] = track.get('age', 0) + 1
+                # Count this track once it has been stable for a few frames
+                if not track.get('counted', False) and track['age'] >= min_conf_track_age:
+                    conf_total_count += 1
+                    track['counted'] = True
                 new_conf_tracks[best_track_id] = track
                 used_conf_track_ids.add(best_track_id)
             else:
+                # New track candidate – do not count immediately
                 new_conf_tracks[conf_next_track_id] = {
                     'center': (cx, cy),
-                    'lost': 0
+                    'lost': 0,
+                    'age': 1,
+                    'counted': False
                 }
-                conf_total_count += 1
                 conf_next_track_id += 1
 
         for tid, tr in conf_tracks.items():
